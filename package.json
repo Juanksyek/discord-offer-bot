@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/index.ts"
+    "start": "node --max-old-space-size=512 node_modules/ts-node/dist/bin.js src/index.ts"
   },
   "keywords": [],
   "author": "",
