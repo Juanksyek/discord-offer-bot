@@ -3,6 +3,7 @@ import * as dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import path from 'path';
 import fs from 'fs';
+import WishListModel from './models/wishlist';
 
 dotenv.config();
 
@@ -63,20 +64,49 @@ client.once('ready', () => {
 });
 
 // Manejo de slash commands
-client.on('interactionCreate', async (interaction: Interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+client.on('interactionCreate', async interaction => {
+  // ✅ Manejar slash commands
+  if (interaction.isChatInputCommand()) {
+    const command = client.commands.get(interaction.commandName);
+    if (!command) return;
 
-  const command = client.commands.get(interaction.commandName);
-  if (!command) return;
+    try {
+      await command.execute(interaction);
+    } catch (err) {
+      console.error(err);
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp({ content: '❌ Error ejecutando el comando.', ephemeral: true });
+      } else {
+        await interaction.reply({ content: '❌ Error ejecutando el comando.', ephemeral: true });
+      }
+    }
+  }
 
-  try {
-    await command.execute(interaction);
-  } catch (err) {
-    console.error(err);
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({ content: '❌ Error ejecutando el comando.', ephemeral: true });
-    } else {
-      await interaction.reply({ content: '❌ Error ejecutando el comando.', ephemeral: true });
+  // Manejar botones
+  if (interaction.isButton()) {
+    const userId = interaction.user.id;
+    const customId = interaction.customId;
+
+    if (customId.startsWith('delete_')) {
+      const asin = customId.replace('delete_', '');
+
+      const wishlist = await WishListModel.findOne({ userId });
+      if (!wishlist) {
+        return await interaction.reply({ content: 'No se encontró tu lista.', ephemeral: true });
+      }
+
+      const index = wishlist.products.findIndex(p => p.asin === asin);
+      if (index === -1) {
+        return await interaction.reply({ content: '❌ No se encontró el producto.', ephemeral: true });
+      }
+
+      const removed = wishlist.products.splice(index, 1)[0];
+      await wishlist.save();
+
+      await interaction.reply({
+        content: `✅ Producto eliminado: **${removed.name || removed.asin}**`,
+        ephemeral: true
+      });
     }
   }
 });
