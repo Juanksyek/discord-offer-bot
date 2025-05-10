@@ -6,7 +6,16 @@ const productSchema = new mongoose.Schema({
   price: Number,
   image: String,
   url: String,
-  lastChecked: Date
+  lastChecked: Date,
+  alertPrice: Number,
+  notificacionesEnviadas: {
+    type: Number,
+    default: 0
+  },
+  notificado: {
+    type: Boolean,
+    default: false
+  }
 });
 
 const wishlistSchema = new mongoose.Schema({
