@@ -19,6 +19,10 @@ const productSchema = new mongoose_1.default.Schema({
     notificado: {
         type: Boolean,
         default: false
+    },
+    notificadoSubida: {
+        type: Boolean,
+        default: false
     }
 });
 const wishlistSchema = new mongoose_1.default.Schema({
