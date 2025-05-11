@@ -16,6 +16,26 @@ export async function checkPriceDrops(client: Client, channelId: string) {
 
                 const updated = await extractProductInfo(product.url);
 
+                if (updated.price > (product.price ?? 0) && !product.notificadoSubida) {
+                    const channel = client.channels.cache.get(channelId);
+                    if (channel && channel.isTextBased()) {
+                        await (channel as TextChannel).send({
+                            content: `📈 <@${list.userId}> tu producto ha subido de precio.`,
+                            embeds: [{
+                                title: `🔼 ${updated.name}`,
+                                description: `💸 Antes: $${product.price}\n🔺 Ahora: $${updated.price}`,
+                                url: product.url ?? '',
+                                image: { url: updated.image },
+                                color: 0xffa500
+                            }]
+                        });
+                    }
+
+                    product.notificadoSubida = true;
+                    product.price = updated.price;
+                    product.lastChecked = new Date();
+                }
+
                 const shouldNotify =
                     (product.alertPrice && updated.price <= product.alertPrice) ||
                     (!product.alertPrice && updated.price < (product.price ?? Infinity));
@@ -36,7 +56,7 @@ export async function checkPriceDrops(client: Client, channelId: string) {
                             description: `💸 **Antes:** $${product.price}\n💥 **Ahora:** $${updated.price}`,
                             url: product.url ?? '',
                             image: { url: updated.image },
-                            color: 0xff0000
+                            color: 0x00ff00 
                         }]
                     });
 
