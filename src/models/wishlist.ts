@@ -15,6 +15,10 @@ const productSchema = new mongoose.Schema({
   notificado: {
     type: Boolean,
     default: false
+  },
+  notificadoSubida: {
+    type: Boolean,
+    default: false
   }
 });
 
